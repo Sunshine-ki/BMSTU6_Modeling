@@ -1,0 +1,279 @@
+% \begin{figure}[ht!]
+% 	\centering{
+% 		\includegraphics[width=0.9\textwidth]{img/img1}
+% 		\caption{Представление в памяти (A B C D).} }
+% \end{figure}
+
+
+\chapter{Теоретические сведения}
+
+\textit{Моделирование} - исследование объектов, в ходе которого он заменяется моделью и исследование объекта проводится на его модели.
+Результат переносится на исходный объект. 
+Объектом может быть система, явление, процесс и т.д..
+
+Модель -  представление объекта в виде, отличном от облика или способа его реального существования
+или способа функционирования.
+
+Корректно поставленная задача, если ее решение существует единственно и устойчиво по входным данным.
+
+\textit{Устойчивая задача} - малое изменение входных данных должно порождать малые изменения выходных данных.
+
+\section{ОДУ}
+
+Дано ОДУ (Обыкновенное Дифференциальное уравнение) n-ого порядка (\ref{eq:ody}).
+
+\begin{equation}
+	F(x, u', u'', ... , u^{(n)} = 0)
+	\label{eq:ody}
+\end{equation}
+
+ОДУ любого порядка может быть сведено к системе ОДУ 1-ого порядка.
+
+\section{Задача Коши}
+
+\textit{Задача Коши} состоит в нахождении решения дифференциального уравнения, удовлетворяющего начальным условиям. 
+Это одна из основных задач теории дифференциальных уравнений.
+
+Имеется задача Коши (\ref{eq:ref1}).
+
+\begin{equation}
+	{\begin{cases}
+			u'(x) = f(x,u) \\
+			u(\xi) = \eta
+		\end{cases}}
+		\label{eq:ref1}
+\end{equation}
+
+Методы решения ОДУ в задачи Коши:
+
+\begin{enumerate}
+	\item аналитические;
+	\item приближенно аналитические;
+	\item численные.
+\end{enumerate}
+
+\section{Методы решения задачи Коши}
+
+При отсутствии аналитического решения можно воспользоваться приближенно аналитическим методом Пикара.
+Заменив дифференциальное уравнение интегральным получим (\ref{eq:ref2}).
+
+\begin{equation}
+	y(x)^{s} = \eta + \int_{\xi}^{x} f(t, y^{s-1}(t)) dt
+	\label{eq:ref2}
+\end{equation}
+
+\begin{equation}
+y^{(0)} = \eta
+\end{equation}
+
+Метод сходится если:
+
+\begin{enumerate}
+	\item правая часть непрерывная;
+	\item выполнено условие Липшица (\ref{eq:Lip})
+\end{enumerate}
+
+\begin{equation}
+	|f(x, u_1) - f(x, u_2| \leq L |u_1-u_2|
+	\label{eq:Lip}
+\end{equation}
+где L - константа Липшица.
+	
+Метод Эйлера (\ref{eq:ref3}).
+
+\begin{equation}
+	y_{n+1} = y_n + h*f(x_n, y_n)
+	\label{eq:ref3}
+\end{equation}
+
+
+Метод Рунге-Кутты (\ref{eq:ref4}).
+
+\begin{equation}
+	y_{n+1} = y_n + h*[(1-\alpha)k_1 + \alpha * k_2]
+	\label{eq:ref4}
+\end{equation}
+
+Где $k_1$ и $k_2$ представлены как (\ref{eq:ref5}) и (\ref{eq:ref6}) соответственно. А $\alpha$ = 1 или $\frac{1}{2}$
+
+\begin{equation}
+	k_1 = f(x_n, y_n)
+	\label{eq:ref5}
+\end{equation}
+
+\begin{equation}
+	k_2 = f(x_n + \frac{h}{2\alpha}, y_n + \frac{h}{2\alpha}k_1)
+	\label{eq:ref6}
+\end{equation}
+
+\chapter{Задание и вычисления приближений для метода Пикара}
+
+Дана задача {\ref{eq:task}}
+
+\begin{equation}
+	{\begin{cases}
+			u'(x) = u^2 + x^2 \\
+			u(0) = 0
+		\end{cases}}
+		\label{eq:task}
+\end{equation}
+
+Используя описанные выше методы построить таблицу для:
+
+\begin{enumerate}
+	\item метода Пикара:
+	\begin{enumerate}
+		\item Первое приближение;
+		\item Второе приближение;
+		\item третье приближение;
+		\item четверное приближение.
+	\end{enumerate}
+	\item метод Эйлера;
+	\item метод Рунге-Кутты.
+\end{enumerate}
+
+Приближения:
+
+\begin{equation}
+	y^{(1)} = 0 + \int_{0}^{x} t^2 dt= \frac{x^3}{3} 
+\end{equation}
+
+\begin{equation}
+	y^{(2)} = 0 + \int_{0}^{x}\left[ \left( \frac{t^3}{3} \right)^2 + t^2 \right] dt = \frac{x^3}{3} + \frac{x^7}{63}
+\end{equation}
+
+\begin{equation}
+	\begin{split}
+		y^{(3)} = 0 + \int_{0}^{x}\left[ \left(\frac{t^7}{63} + \frac{t^3}{3} \right)^2 + t^2 \right] dt = \\ 
+		\int_{0}^{x}\left[ \frac{t^{14}}{63^2} + \frac{2}{63*3}t^{10} + \frac{t^6}{9} + t^2 \right] = \\
+		\frac{x^3}{3} + \frac{x^7}{63} + \frac{2x^{11}}{2079} + \frac{x^{15}}{59535}
+	\end{split}
+\end{equation}
+
+\begin{equation}
+	\begin{split}
+		y^{(4)} = 0 + \int_{0}^{x}\left[ \left( \frac{t^3}{3} + \frac{t^7}{63} + \frac{2t^{11}}{2079} + \frac{t^{15}}{59535} \right)^2 + t^2 \right] dt = \\ 
+		= \frac{x^3}{3} + \frac{x^{7}}{63} + \frac{2x^{11}}{2079} + \frac{13x^{15}}{218295} + \frac{82x^{19}}{37328445} + \\
+		+ \frac{662x^{23}}{10438212015} + \frac{4x^{27}}{3341878155} + \frac{x^{31}}{109876903905}
+	\end{split}
+\end{equation}
+
+\chapter{Листинги реализованных методов}
+
+\begin{lstlisting}[language=Python]
+from prettytable import PrettyTable
+
+# Подбираем шаг:
+
+# Euler:
+# При 1e-1 y(1) = 0.2925421046
+# При 1e-2 y(1) = 0.3331073593
+# При 1e-3 y(1) = 0.3484859823
+# При 1e-4 y(1) = 0.3501691515
+# При 1e-5 y(1) = 0.3502255745
+# Шаг ничего не меняет (между 1e-3 и 1e-4) 
+# Значит мы подобрали нужный нам шаг.
+
+# Runge:
+# При 1e-1 y(1) = 0.3933413435
+# При 1e-2 y(1) = 0.4015176873
+# При 1e-3 y(1) = 0.4184706977
+# При 1e-4 y(1) = 0.420382457
+# При 1e-5 y(1) = 0.4204145637
+# Аналогично.
+
+ACCURACY = 10
+MAX_X = 1
+STEP = 0.01 # 1e-3
+
+	
+def f(x, y):
+	return pow(x, 2) + pow(y, 2)
+
+def fp1(x):
+	return pow(x, 3) / 3
+
+def fp2(x):
+	return pow(x, 7) / 63 + \
+		fp1(x)
+
+def fp3(x):
+	return pow(x, 15) / 59535 + \
+		2 * pow(x, 11) / 2079 + \
+		fp2(x)
+
+def fp4(x):
+	return pow(x, 31) / 109876903905 + \
+		4 * pow(x, 27) / 3341878155 + \
+		662 * pow(x, 23) / 10438212015 + \
+		82 * pow(x, 19) / 37328445 + \
+		fp3(x)
+
+
+def Picar(x_max, h, func):
+	result = list()
+	x, y = 0, 0
+
+	while x < x_max:
+		result.append(round(y, ACCURACY))
+		x += h
+		y = func(x)
+	
+	return result
+
+
+def Euler(x_max, h):
+	result = list()
+	x, y = 0, 0 	# Начальное условие.
+	
+	while x < x_max:
+		result.append(round(y, ACCURACY))
+		y = y + h * f(x, y)
+		x += h
+
+	return result
+
+
+def Runge(x_max, h):
+	result = list()
+	alpha = 0.5 	# or 1
+	coeff = h / (2 * alpha)
+	x, y = 0, 0
+	
+	while x < x_max:
+		result.append(round(y, ACCURACY))
+		k1 = f(x, y)
+		k2 = f(x + coeff, y + alpha * k1)
+		y = y + h * ((1 - alpha) * k1 + alpha * k2)
+		x += h
+	
+	return result
+
+
+def x_range(x_max, h):
+	result = list()
+	x = 0
+	while x < x_max:
+		result.append(round(x, 2))
+		x += h
+	return result
+
+
+def main():
+	column_names = ["X","Picard 1", "Picard 2", "Picard 3", "Picard 4", "Runge"]
+
+	tb = PrettyTable()
+	tb.add_column("X", x_range(MAX_X, STEP))
+	tb.add_column("Picard 1", Picar(MAX_X, STEP, fp1))
+	tb.add_column("Picard 2", Picar(MAX_X, STEP, fp2))
+	tb.add_column("Picard 3", Picar(MAX_X, STEP, fp3))
+	tb.add_column("Picard 4", Picar(MAX_X, STEP, fp4))
+	tb.add_column("Euler", Euler(MAX_X, STEP))
+	tb.add_column("Runge", Runge(MAX_X, STEP))
+
+	print(tb)
+
+
+if __name__ == "__main__":
+	main()	
+\end{lstlisting}
