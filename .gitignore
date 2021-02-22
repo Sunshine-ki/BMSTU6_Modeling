@@ -127,3 +127,17 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+*.sty
+*.clo
+*.cls
+*.layout
+*.bst
+*.fls
+*.aux
+*.fdb_latexmk
+*.gz
+*.toc
+*.log
+*.out
+*.exe
