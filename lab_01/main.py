@@ -1,5 +1,6 @@
 from prettytable import PrettyTable
-
+from decimal import Decimal
+	
 # Подбираем шаг:
 
 # Euler:
@@ -12,20 +13,20 @@ from prettytable import PrettyTable
 # Значит мы подобрали нужный нам шаг.
 
 # Runge:
-# При 1e-1 y(1) = 0.3933413435
-# При 1e-2 y(1) = 0.4015176873
-# При 1e-3 y(1) = 0.4184706977
-# При 1e-4 y(1) = 0.420382457
-# При 1e-5 y(1) = 0.4204145637
+# При 1e-1 y(1) = 0.3485453439
+# При 1e-2 y(1) = 0.3391265967
+# При 1e-3 y(1) = 0.3491103993
+# При 1e-4 y(1) = 0.3502318426
+# При 1e-5 y(1) = 0.3502318443
 # Аналогично.
 
-ACCURACY = 10
 MAX_X = 1
-STEP = 0.01 # 1e-3
+STEP = 1e-4
 
     
 def f(x, y):
-	return pow(x, 2) + pow(y, 2)
+	return x * x + y * y
+	# return pow(x, 2) + pow(y, 2)
 
 def fp1(x):
 	return pow(x, 3) / 3
@@ -52,7 +53,7 @@ def Picar(x_max, h, func):
 	x, y = 0, 0
 
 	while x < x_max:
-		result.append(round(y, ACCURACY))
+		result.append(y)
 		x += h
 		y = func(x)
 	
@@ -64,7 +65,8 @@ def Euler(x_max, h):
 	x, y = 0, 0 	# Начальное условие.
 	
 	while x < x_max:
-		result.append(round(y, ACCURACY))
+		result.append(y)
+		# print(y)
 		y = y + h * f(x, y)
 		x += h
 
@@ -73,15 +75,13 @@ def Euler(x_max, h):
 
 def Runge(x_max, h):
 	result = list()
-	alpha = 0.5 	# or 1
-	coeff = h / (2 * alpha)
+	coeff = h / 2
 	x, y = 0, 0
 	
 	while x < x_max:
-		result.append(round(y, ACCURACY))
-		k1 = f(x, y)
-		k2 = f(x + coeff, y + alpha * k1)
-		y = y + h * ((1 - alpha) * k1 + alpha * k2)
+		result.append(y)
+		# print(x, y)
+		y = y + h * f(x + coeff, y + coeff * f(x, y))
 		x += h
 	
 	return result
