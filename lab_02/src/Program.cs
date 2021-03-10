@@ -1,39 +1,38 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace src
 {
 	class Program
 	{
-		public static double T_0;
-		public static double m;
-
-		public static double Rp(double I)
-		{
-			T_0 = Interpolation.LinearInterpolation(Constants.I, Constants.T_0, I);
-			m = Interpolation.LinearInterpolation(Constants.I, Constants.m, I);
-			double integral_value = Integral.Trapezoidal(f, 0, 1);
-			double denominator = 2 * Math.PI * Constants.R_squared * integral_value;
-			return Constants.l_e / denominator;
-		}
-
-		public static double f(double x)
-		{
-			double sigma_arg = (Constants.T_w - T_0) * Math.Pow(x, m) + T_0;
-			double[] new_sigma = new double[Constants.Sigma.Length - 1];
-
-			// FIXME: log + exp ???
-			for (int i = 0; i < new_sigma.Length; i++)
-				new_sigma[i] = Math.Log(Constants.Sigma[i]);
-
-			return Math.Exp(Interpolation.LinearInterpolation(Constants.T, new_sigma, sigma_arg)) * x;
-		}
-
 		static void Main(string[] args)
 		{
-			// Console.WriteLine(Constants.I);
-			// Console.WriteLine(Integral.Trapezoidal(my_f, 1, 6));
-			// Console.WriteLine(Interpolation.LinearInterpolation(Constants.T, Constants.Sigma, 8500));
-			Console.WriteLine($"Rp = {Rp(0.65)}");
+			List<double> arr_t = new List<double>();
+			List<double> arr_I = new List<double>();
+			List<double> arr_U = new List<double>();
+			Tuple<double, double> curr;
+
+			arr_t.Add(0);
+			arr_I.Add(Constants.I_0);
+			arr_U.Add(Constants.U_c0);
+
+			for (double t = 0; t < 800e-6; t += 1e-6)
+			{
+				curr = Runge.Runge_Kutta(Functions.f, Functions.g, 0, arr_I[arr_I.Count - 1], arr_U[arr_U.Count - 1], 1e-6);
+
+				arr_t.Add(t);
+				arr_I.Add(curr.Item1);
+				arr_U.Add(curr.Item2);
+			}
+
+
+			for (int i = 0; i < arr_I.Count; i++)
+			{
+				Console.WriteLine($"{arr_I[i]}");
+			}
+
+			// foreach (double elem in arr_I)
+			// 	Console.WriteLine(elem);
 		}
 	}
 }

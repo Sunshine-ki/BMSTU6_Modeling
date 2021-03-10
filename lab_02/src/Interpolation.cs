@@ -8,12 +8,12 @@ namespace src
 		{
 			int left, right;
 
-			if (x < xs[0])
+			if (x <= xs[0])
 			{
 				left = 0;
 				right = 1;
 			}
-			else if (x > xs[xs.Length - 1])
+			else if (x >= xs[xs.Length - 1])
 			{
 				left = xs.Length - 2;
 				right = xs.Length - 1;
