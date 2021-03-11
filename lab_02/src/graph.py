@@ -28,9 +28,11 @@ def main():
 	t = Reader("results/data/t.txt")
 	I = Reader("results/data/I.txt")
 	U = Reader("results/data/U.txt")
+	IU = Reader("results/data/IU.txt")
 
 	SaveImg(t, I, "t", "I", "results/img/I.png")
 	SaveImg(t, U, "t", "U", "results/img/U.png")
+	SaveImg(t, IU, "t", "I*U", "results/img/IU.png")
 
 
 if __name__ == '__main__':
