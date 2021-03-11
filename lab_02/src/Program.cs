@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 
+
 namespace src
 {
 	class Program
@@ -47,6 +48,8 @@ namespace src
 		}
 		static void Main(string[] args)
 		{
+			// Output with point.
+			System.Threading.Thread.CurrentThread.CurrentCulture = new System.Globalization.CultureInfo("en-US");
 			SaveResult();
 		}
 	}
