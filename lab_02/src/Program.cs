@@ -1,12 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 
 namespace src
 {
 	class Program
 	{
-		static void Main(string[] args)
+		public static void SaveResult()
 		{
+			FileStream file = new FileStream("results/data/t.txt", FileMode.Open, FileAccess.Write);
+			StreamWriter writer_t = new StreamWriter(file);
+
+			file = new FileStream("results/data/U.txt", FileMode.Open, FileAccess.Write);
+			StreamWriter writer_U = new StreamWriter(file);
+
+			file = new FileStream("results/data/I.txt", FileMode.Open, FileAccess.Write);
+			StreamWriter writer_I = new StreamWriter(file);
+
 			List<double> arr_t = new List<double>();
 			List<double> arr_I = new List<double>();
 			List<double> arr_U = new List<double>();
@@ -18,6 +28,10 @@ namespace src
 
 			for (double t = 0; t < 800e-6; t += 1e-6)
 			{
+				writer_t.WriteLine(arr_t[arr_t.Count - 1]);
+				writer_I.WriteLine(arr_I[arr_I.Count - 1]);
+				writer_U.WriteLine(arr_U[arr_U.Count - 1]);
+
 				curr = Runge.Runge_Kutta(Functions.f, Functions.g, 0, arr_I[arr_I.Count - 1], arr_U[arr_U.Count - 1], 1e-6);
 
 				arr_t.Add(t);
@@ -25,14 +39,15 @@ namespace src
 				arr_U.Add(curr.Item2);
 			}
 
+			writer_t.Close();
+			writer_I.Close();
+			writer_U.Close();
+			file.Close();
 
-			for (int i = 0; i < arr_I.Count; i++)
-			{
-				Console.WriteLine($"{arr_I[i]}");
-			}
-
-			// foreach (double elem in arr_I)
-			// 	Console.WriteLine(elem);
+		}
+		static void Main(string[] args)
+		{
+			SaveResult();
 		}
 	}
 }
