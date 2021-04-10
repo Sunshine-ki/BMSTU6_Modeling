@@ -246,6 +246,132 @@ $T_w = 2000$ К
 \end{equation*}
 
 \newpage 
+\section{Реализация}
+
+Метод Рунге-Кутта:
+\begin{lstlisting}
+class Runge
+{
+    public static Tuple<double, double> Runge_Kutta(
+                                        Func<double, double, double, double> f,
+                                        Func<double, double, double, double> g,
+                                        double xn, double yn, double zn,
+                                        double h)
+    {
+        double k1, k2, k3, k4;
+        double p1, p2, p3, p4;
+
+        k1 = h * f(xn, yn, zn);
+        p1 = h * g(xn, yn, zn);
+
+        k2 = h * f(xn + h / 2, yn + k1 / 2, zn + p1 / 2);
+        p2 = h * g(xn + h / 2, yn + k1 / 2, zn + p1 / 2);
+
+        k3 = h * f(xn + h / 2, yn + k2 / 2, zn + p2 / 2);
+        p3 = h * g(xn + h / 2, yn + k2 / 2, zn + p2 / 2);
+
+        k4 = h * f(xn + h, yn + k3, zn + p3);
+        p4 = h * g(xn + h, yn + k3, zn + p3);
+
+        double y_next = yn + (k1 + 2 * k2 + 2 * k3 + k4) / 6;
+        double z_next = zn + (p1 + 2 * p2 + 2 * p3 + p4) / 6;
+
+        return Tuple.Create(y_next, z_next);
+    }
+}
+\end{lstlisting}
+
+Интерполяция:
+\begin{lstlisting}
+class Interpolation
+{
+    public static double LinearInterpolation(double[] xs, double[] ys, double x)
+    {
+        int left, right;
+
+        if (x <= xs[0])
+        {
+            left = 0;
+            right = 1;
+        }
+        else if (x >= xs[xs.Length - 1])
+        {
+            left = xs.Length - 2;
+            right = xs.Length - 1;
+        }
+        else
+        {
+            // Find the border.
+            int i = 0;
+            while (x > xs[i])
+                i++;
+
+            left = i - 1;
+            right = i;
+        }
+
+        return ys[left] + (ys[right] - ys[left]) * (x - xs[left]) / (xs[right] - xs[left]);
+    }
+}
+\end{lstlisting}
+
+Вспомогательные функции:
+\begin{lstlisting}
+class Functions
+{
+    static double T_0;
+    static double m;
+
+    static public double Rp(double I)
+    {
+        T_0 = Interpolation.LinearInterpolation(Constants.I, Constants.T_0, I);
+        m = Interpolation.LinearInterpolation(Constants.I, Constants.m, I);
+        double integral_value = Integral.Trapezoidal(f_integral, 0, 1);
+        double denominator = 2 * Math.PI * Constants.R_squared * integral_value;
+        return Constants.l_e / denominator;
+    }
+
+    static double f_integral(double x)
+    {
+        double sigma_arg = (Constants.T_w - T_0) * Math.Pow(x, m) + T_0;
+        double[] new_sigma = new double[Constants.Sigma.Length - 1];
+        for (int i = 0; i < new_sigma.Length; i++)
+            new_sigma[i] = Math.Log(Constants.Sigma[i]);
+        return Math.Exp(Interpolation.LinearInterpolation(Constants.T, new_sigma, sigma_arg)) * x;
+    }
+
+    static double dI(double I, double U)
+    {
+        return (U - (Constants.R_k + Rp(I)) * I) / Constants.L_k;
+        // return U / Constants.L_k; // for (Rp + Rk) = 0
+        // return (U - 200 * I) / Constants.L_k; // for (Rp + Rk) = 200
+    }
+
+    static double dU(double I)
+    {
+        return -I / Constants.C_k;
+    }
+
+    public static double f(double x, double I, double U) => dI(I, U);
+    public static double g(double x, double I, double z) => dU(I);
+}
+
+class Integral
+{
+    public static double Trapezoidal(Func<double, double> f, double a, double b, double step = 0.05)
+    {
+        double result = f(a) + f(b);
+        while (a + step < b)
+        {
+            a += step;
+            result += 2 * f(a);
+        }
+        return result * (step / 2);
+    }
+}
+\end{lstlisting}
+
+\newpage 
 
 \section{Экспериментальная часть}
 
