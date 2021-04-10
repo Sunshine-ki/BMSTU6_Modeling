@@ -12,9 +12,9 @@ namespace src
 		public const double l_e = 12;
 		public const double L_k = 187e-6;
 		public const double C_k = 268e-6;
-		public const double R_k = 0.25;
+		public const double R_k = 0.5;
 		public const double U_c0 = 1400;
-		public const double I_0 = 3;
+		public const double I_0 = 0.5;// 3;
 		public const double T_w = 2000;
 	}
 }

@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 
 namespace src
 {
@@ -7,7 +8,7 @@ namespace src
 		static double T_0;
 		static double m;
 
-		static double Rp(double I)
+		static public double Rp(double I)
 		{
 			T_0 = Interpolation.LinearInterpolation(Constants.I, Constants.T_0, I);
 			m = Interpolation.LinearInterpolation(Constants.I, Constants.m, I);
@@ -28,6 +29,8 @@ namespace src
 		static double dI(double I, double U)
 		{
 			return (U - (Constants.R_k + Rp(I)) * I) / Constants.L_k;
+			// return U / Constants.L_k; // График для (Rp + Rk) = 0
+			// return (U - 200 * I) / Constants.L_k; // График для (Rp + Rk) = 200
 		}
 
 		static double dU(double I)
