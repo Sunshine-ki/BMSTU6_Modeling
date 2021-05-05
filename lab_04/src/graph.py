@@ -26,13 +26,13 @@ def SaveImg(xs, array_ys, name_x, name_y, file_name):
 
 
 def main():
-	xs = Reader("results/data/xs_2.txt")
+	xs = Reader("results/data/xs.txt")
 
 	array_ys = list()
 	for i in range(17):
-		ys = Reader(f"results/data/task_2_{i}.txt")
+		ys = Reader(f"results/data/task_1_{i}.txt")
 		array_ys.append(ys)
-	SaveImg(xs, array_ys, "T, к", "x, см", "results/img/2.png") 
+	SaveImg(xs, array_ys, "T, к", "x, см", "results/img/1.png") 
 
 
 if __name__ == '__main__':

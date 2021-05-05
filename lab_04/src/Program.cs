@@ -62,7 +62,7 @@ namespace src
 				T = TNew;
 
     			// List<double> ys = new List<double>();
-			    // for (double s = Constants.l / 3d; s > 0 ; s -= 0.1)
+			    // for (double s = 0; s < Constants.l / 3d> ; s += 0.1)
                 // {
 				// 	Console.WriteLine(s);
 				// 	ys.Add(TNew[(int)(s / Constants.h)]);
