@@ -22,5 +22,4 @@ namespace src
 		public const double eps = 1e-2;
 
 	}
-
 }
