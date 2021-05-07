@@ -67,6 +67,12 @@
 	f_{2}  = 4n^2_p \sigma \int^1_0 k(T(x))(T^4(x) - T^4_0) dx
 \end{equation*}
 
+\begin{figure}[ht!]
+	\centering{
+		\includegraphics[width=0.6\textwidth]{img/lab_03.png}
+		\caption{Правильное выделение функции p(x) и f(x).} }
+\end{figure}
+
 \textbf{Физическое содержание задачи.} 
 
 Сформулированная математическая модель описывает температурное поле T(x)
@@ -82,80 +88,100 @@
 \newpage 
 \section{Реализация}
 \begin{lstlisting}[]
+import numpy as np
+from scipy import integrate
+from scipy.interpolate import InterpolatedUnivariateSpline
+import matplotlib.pyplot as plt
+
 class Params:
-	n_p = 1.4
-	l = 0.2
-	T0 = 300
-	sigma = 5.668*1e-12
 	F0 = 100
+	T0 = 300
+	l = 0.2
+	h = 1e-3
+	np_coef = 1.4
 	alpha = 0.05
-	h = 1e-4
-
-	fst_table = ((300, 500, 800, 1100, 2000, 2400), 
-			(1.36 * pow(10, -2), 1.63 * pow(10, -2), 1.81 * pow(10, -2),
-			1.98 * pow(10, -2), 2.50 * pow(10, -2), 2.74 * pow(10, -2)))
-
-	snd_table = ((293, 1278, 1528, 1677, 2000, 2400),
-		(2.0 * pow(10, -2), 5.0 * pow(10, -2), 7.8 * pow(10, -2),
-		1.0 * pow(10, -1), 1.3 * pow(10, -1), 2.0 * pow(10, -1)),)
+	sigma = 5.668e-12
+	tl_tab = ((300, 500, 800, 1100, 2000, 2400),
+		(1.36e-2, 1.63e-2, 1.81e-2, 1.98e-2, 2.50e-2, 2.74e-2))
+	tk_tab = ((293, 1278, 1528, 1677, 2000, 2400),
+		(2.0e-2, 5.0e-2, 7.8e-2, 1.0e-1, 1.3e-1, 2.0e-1))
 
 params = Params()
+get_lambda = InterpolatedUnivariateSpline(params.tl_tab[0], params.tl_tab[1], k=1)
+get_k = InterpolatedUnivariateSpline(params.tk_tab[0], params.tk_tab[1], k=1)
 
-class Functions:
-	@staticmethod
-	def Interpolate(x_pts, y_pts, order=1):
-		return InterpolatedUnivariateSpline(x_pts, y_pts, k=order)
-	@staticmethod
-	def p(k_t, t, n):
-		return 0
-	@staticmethod
-	def f(k_t, t, n):
-		return 4 * params.Np * params.Np + params.sigma * k_t(t[n]) * (pow(t, 4) - pow(params.T0, 4))
-	@staticmethod
-	def x_right(l_t, t, n):
-		return (l_t(t[n]) + l_t(t[n + 1])) / 2
-	@staticmethod
-	def x_left(l_t, t, n):
-		return (l_t(t[n]) + l_t(t[n - 1])) / 2
-	@staticmethod
-	def p_right(k_t, t, n):
-		return (Functions.p(k_t, t, n) + Functions.p(k_t, t, n + 1)) / 2
-	@staticmethod
-	def p_left(k_t, t, n):
-		return (Functions.p(k_t, t, n) + Functions.p(k_t, t, n - 1)) / 2
-	@staticmethod
-	def f_right(k_t, t, n):
-		return (Functions.f(k_t, t, n) + Functions.f(k_t, t, n + 1)) / 2
-	@staticmethod
-	def f_left(k_t, t, n):
-		return (Functions.f(k_t, t, n) + Functions.f(k_t, t, n - 1)) / 2
-	@staticmethod
-	def A(l_t, t, n):
-		return (l_t(t[n]) + l_t(t[n - 1])) / 2 / params.h
-	@staticmethod
-	def B(l_t, k_t, t, n):
-		return Functions.A(l_t, t, n) + Functions.C(l_t, t, n)
-	@staticmethod
-	def C(l_t, t, n):
-		return (l_t(t[n]) + l_t(t[n + 1])) / 2 / params.h
-	@staticmethod
-	def D(k_t, t, n):
-		return -4 * k_t(t[n]) * params.Np * params.Np * params.sigma * (pow(t[n], 4) - pow(params.T0, 4)) * params.h
+def p(T):
+	return 0
 
+def f(T):
+	return -4 * params.np_coef**2 * params.sigma * get_k(T) * \
+					(pow(T, 4)-pow(params.T0, 4))
 
-def GetRightConditions(l_t, k_t, t):
-	K0 = Functions.x_right(l_t, t, 0) + pow(params.h, 2) / 8 * Functions.p_right(k_t, t, 0) + pow(params.h, 2) / 4 * Functions.p(k_t, t, 0)
-	M0 = pow(params.h, 2) / 8 * Functions.p_right(k_t, t, 0) - Functions.x_right(l_t, t, 0)
-	P0 = params.h * params.F0 + pow(params.h, 2) / 4 * (Functions.f_right(k_t, t, 0) + Functions.f_left(k_t, t, 0))
+def LeftConditions(ts):
+	h2 = params.h * params.h
+	lm = (get_lambda(ts[0]) + get_lambda(ts[1])) / 2
+	fm = (f(ts[0]) + f(ts[1])) / 2
+	K0 = lm
+	M0 = -lm
+	P0 = params.h * params.F0 + (h2 / 4) * (f(ts[0]) + fm)
 	return K0, M0, P0
 
+def RightConditions(ts):
+	KN = get_lambda(ts[-1])
+	MN = params.alpha * params.h + get_lambda(ts[-1])
+	PN = params.alpha * params.T0 * params.h
+	return KN, MN, PN
 
-def GetLeftConditions(k_t, l_t, t, n):
-	Kn = Functions.x_left(l_t, t, n) / params.h - params.alpha - params.h * Functions.p(k_t, t, n) / 4 - params.h * Functions.p_left(k_t, t, n) / 8
-	Mn = Functions.x_left(l_t, t, n) / params.h - params.h * Functions.p_left(k_t, t, n) / 8
-	Pn = -(params.alpha * params.T0 + (Functions.f_right(k_t, t, n) + Functions.f_left(k_t, t, n)) / 4 * params.h)
-	return Kn, Mn, Pn
+def RunMethod(A, B, C, D, K0, M0, P0, KN, MN, PN): 
+	n = len(A)
+	xi = [-M0/K0]
+	eta = [P0/K0]
+	for i in range(len(A)):
+		x = C[i]/(B[i]-A[i] * xi[i])
+		e = (D[i]+A[i] * eta[i])/(B[i]-A[i] * xi[i])
+		xi.append(x)
+		eta.append(e)
+	y = [(PN-KN * eta[n])/(MN+KN * xi[n])]
+	for i in range(len(A), -1, -1):
+		y_i = xi[i] *  y[0]+eta[i]
+		y.insert(0, y_i)
+	return np.array(y)
 
+def CalcCoefficients(ts):
+	K0, M0, P0 = LeftConditions(ts)
+	KN, MN, PN = RightConditions(ts)
+	N = int(params.l/params.h)
+	A, B, C, D = [0]*(N-1), [0]*(N-1), [0]*(N-1), [0]*(N-1)
+	for n in range(1, N):
+		lam_n_m_1 = get_lambda(ts[n-1])
+		lam_n = get_lambda(ts[n])
+		lam_n_p_1 = get_lambda(ts[n+1])
+		A[n-1] = (lam_n_m_1+lam_n)/2/params.h
+		C[n-1] = (lam_n+lam_n_p_1)/2/params.h
+		B[n-1] = A[n-1]+C[n-1]+p(ts[n]) * params.h
+		D[n-1] = f(ts[n]) * params.h
+	return A, B, C, D, K0, M0, P0, KN, MN, PN
+
+def f1(T):
+	return params.F0-params.alpha * (T[-1]-params.T0)
+
+def f2 (ts):
+	return  4 * params.np_coef**2 * params.sigma * integrate.trapezoid([get_k(ti) * \
+				(pow(ti, 4) - pow(params.T0, 4)) for ti in ts], np.arange(0, params.l + params.h, params.h))
+
+def SimpleIterations(alpha, eps1, eps2, maxIter):
+	N = int(params.l/params.h)
+	cnt = 0 
+	T_sp = np.array([params.T0] * (N+1), dtype=float)
+	A, B, C, D, K0, M0, P0, KN, MN, PN = CalcCoefficients(T_sp)
+	T_s = RunMethod(A, B, C, D, K0, M0, P0, KN, MN, PN)
+	while np.max(abs((f1(T_s)-f2(T_s))/f1(T_s))) > eps2 and np.max(abs((T_s-T_sp)/T_s)) > eps1 and cnt < maxIter:
+		T_sp = T_s
+		A, B, C, D, K0, M0, P0, KN, MN, PN = CalcCoefficients(T_sp)
+		new_Ts_norelax = RunMethod(A, B, C, D, K0, M0, P0, KN, MN, PN)
+		T_s = T_sp+params.alpha * (new_Ts_norelax-T_sp)
+		cnt += 1
+	return T_s
 
 def SaveImg(xs, ys, name_x, name_y, file_name):
 	fig, ax = plt.subplots()
@@ -163,34 +189,21 @@ def SaveImg(xs, ys, name_x, name_y, file_name):
 	ax.grid()
 	ax.set_xlabel(name_x)
 	ax.set_ylabel(name_y)
-	plt.savefig(file_name, bbox_inches="tight")
 
-def Main():
-	l_t = Functions.Interpolate(params.fst_table[0], params.fst_table[1])
-	k_t = Functions.Interpolate(params.snd_table[0], params.snd_table[1])
-	t = [0 for _ in range(int(1 / params.h) + 2)]
-	K0, M0, P0 = GetRightConditions(l_t, k_t, t)
-	xi_list = [0]
-	eta_list = [0]
-	x_list = list()
-	x = 0
-	n = 0
-	while x + params.h < 1:
-		x_list.append(x)
-		xi_list.append(Functions.C(l_t, t, n) / (Functions.B(l_t, k_t, t, n) - Functions.A(l_t, t, n) * xi_list[n]))
-		eta_list.append((Functions.D(k_t, t, n) + Functions.A(l_t, t, n) * xi_list[n]) / (Functions.B(l_t, k_t, t, n) - Functions.A(l_t, t, n) * xi_list[n]))
-		n += 1
-		x += params.h
-	x_list.extend([x + params.h, x + params.h * 2])
-	Kn, Mn, Pn = GetLeftConditions(k_t, l_t, t, n)
-	t[n] = (Pn - Mn * xi_list[n]) / (Kn + Mn * xi_list[n])
-	for i in range(n - 1, -1, -1):
-		t[i] = xi_list[i + 1] * t[i + 1] + eta_list[i + 1]
-	SaveImg(x_list, t, "l", "T", "img_1.png")
+	# params.alpha *= 3
+	# x = np.arange(0, params.l+params.h, params.h)
+	# T = SimpleIterations(0.25, 1e-5, 1e-3, 100)
+	# ax.plot(x, T)
 
+	plt.savefig(file_name, bbox_inches="tight") # color = 'green'
+
+def main():
+	x = np.arange(0, params.l+params.h, params.h)
+	T = SimpleIterations(0.25, 1e-5, 1e-3, 100)
+	SaveImg(x, T, '1', '2', '1.png')
 
 if __name__ == "__main__":
-	Main()
+	main()
 \end{lstlisting}
 
 \newpage 
@@ -244,28 +257,32 @@ if __name__ == "__main__":
 
 \clearpage
 
-\subsection{2. График зависимости температуры $T(x)$ координаты $x$ при заданных выше параметрах.}
+\subsection{2. График зависимости температуры $T(x)$ координаты $x$ при заданных выше параметрах.
 Выяснить, как сильно зависят результаты расчета T(x) и необходимое для
-этого количество итераций от начального распределения температуры и шага сетки. 
+этого количество итераций от начального распределения температуры и шага сетки.}
 
 \begin{figure}[ht!]
 	\centering{
 		\includegraphics[width=0.6\textwidth]{img/1.png}}
 \end{figure}
-Кол-во итераций: 23
 
-Изменим параметры: $T_0$ = 2000. 
+При увеличении $T_0$ общий вид графика не меняется. 
+Увеличивается количество итераций.
 
-\begin{figure}[ht!]
-	\centering{
-		\includegraphics[width=0.6\textwidth]{img/2.png}}
-\end{figure}
-Кол-во итераций: 9
+% Кол-во итераций: 23
 
-При увеличении $T_0$ получается более выраженная выпуклость кривых.
-При этом количество итераций значительно снижается.
+% Изменим параметры: $T_0$ = 500. 
 
-\newpage
+% \begin{figure}[ht!]
+% 	\centering{
+% 		\includegraphics[width=0.6\textwidth]{img/2.png}}
+% \end{figure}
+% Кол-во итераций: 9
+
+% Начальное распределение температуры не влияет на результат
+% При этом количество итераций значительно снижается.
+
+% \newpage
 
 \subsection{3. График зависимости $T(x)$ при $F_{0} = -10 \frac{Bт}{cm^2}$. }
 
@@ -285,11 +302,11 @@ if __name__ == "__main__":
 		\includegraphics[width=0.6\textwidth]{img/4.png}}
 \end{figure}
 
-Зеленая кривая при увеличенном в 3 раза коэффициенте теплоотдачи.
-\begin{figure}[ht!]
-	\centering{
-		\includegraphics[width=0.6\textwidth]{img/5.png}}
-\end{figure}
+% Зеленая кривая при увеличенном в 3 раза коэффициенте теплоотдачи.
+% \begin{figure}[ht!]
+% 	\centering{
+% 		\includegraphics[width=0.6\textwidth]{img/5.png}}
+% \end{figure}
 
 \newpage
 

@@ -1,128 +1,131 @@
-from collections import namedtuple
-from math import pow
+import numpy as np
+from scipy import integrate
 from scipy.interpolate import InterpolatedUnivariateSpline
-from numpy import arange
-import matplotlib
 import matplotlib.pyplot as plt
 
 class Params:
-	n_p = 1.4
-	l = 0.2
-	T0 = 300
-	sigma = 5.668*1e-12
-	F0 = 100
-	alpha = 0.05
-	h = 1e-4
-
-	fst_table = ((300, 500, 800, 1100, 2000, 2400), 
-			(1.36 * pow(10, -2), 1.63 * pow(10, -2), 1.81 * pow(10, -2),
-			1.98 * pow(10, -2), 2.50 * pow(10, -2), 2.74 * pow(10, -2)))
-
-	snd_table = ((293, 1278, 1528, 1677, 2000, 2400),
-		(2.0 * pow(10, -2), 5.0 * pow(10, -2), 7.8 * pow(10, -2),
-		1.0 * pow(10, -1), 1.3 * pow(10, -1), 2.0 * pow(10, -1)),)
+    F0 = 100
+    T0 = 300
+    l = 0.2
+    h = 1e-4
+    np_coef = 1.4
+    alpha = 0.05
+    sigma = 5.668e-12
+    tl_tab = ((300, 500, 800, 1100, 2000, 2400),
+        (1.36e-2, 1.63e-2, 1.81e-2, 1.98e-2, 2.50e-2, 2.74e-2))
+    tk_tab = ((293, 1278, 1528, 1677, 2000, 2400),
+        (2.0e-2, 5.0e-2, 7.8e-2, 1.0e-1, 1.3e-1, 2.0e-1))
 
 params = Params()
+get_lambda = InterpolatedUnivariateSpline(params.tl_tab[0], params.tl_tab[1], k=1)
+get_k = InterpolatedUnivariateSpline(params.tk_tab[0], params.tk_tab[1], k=1)
 
-class Functions:
-	@staticmethod
-	def Interpolate(x_pts, y_pts, order=1):
-		return InterpolatedUnivariateSpline(x_pts, y_pts, k=order)
+def p(T):
+    return 0
 
-	@staticmethod
-	def p(k_t, t, n):
-		return 4 * params.n_p * params.n_p * params.sigma * k_t(t[n]) * pow(t[n], 3)
+def f(T):
+    return -4 * params.np_coef**2 * params.sigma * get_k(T) * \
+                 (pow(T, 4)-pow(params.T0, 4))
 
-	@staticmethod
-	def f(k_t, t, n):
-		return 4 * params.n_p *params.n_p + params.sigma * k_t(t[n]) * pow(params.T0, 4)
+def LeftConditions(ts):
+    h2 = params.h * params.h
+    lm = (get_lambda(ts[0]) + get_lambda(ts[1])) / 2
+    fm = (f(ts[0]) + f(ts[1])) / 2
+    K0 = lm
+    M0 = -lm
+    P0 = params.h * params.F0 + (h2 / 4) * (f(ts[0]) + fm)
+    return K0, M0, P0
 
-	@staticmethod
-	def x_right(l_t, t, n):
-		return (l_t(t[n]) + l_t(t[n + 1])) / 2
+def RightConditions(ts):
+    KN = get_lambda(ts[-1])
+    MN = params.alpha * params.h + get_lambda(ts[-1])
+    PN = params.alpha * params.T0 * params.h
+    return KN, MN, PN
 
-	@staticmethod
-	def x_left(l_t, t, n):
-		return (l_t(t[n]) + l_t(t[n - 1])) / 2
+def RunMethod(A, B, C, D, K0, M0, P0, KN, MN, PN): 
+    n = len(A)
+    xi = [-M0/K0]
+    eta = [P0/K0]
+    for i in range(len(A)):
+        x = C[i]/(B[i]-A[i] * xi[i])
+        e = (D[i]+A[i] * eta[i])/(B[i]-A[i] * xi[i])
+        xi.append(x)
+        eta.append(e)
+    y = [(PN-KN * eta[n])/(MN+KN * xi[n])]
+    for i in range(len(A), -1, -1):
+        y_i = xi[i] *  y[0]+eta[i]
+        y.insert(0, y_i)
+    return np.array(y)
 
-	@staticmethod
-	def p_right(k_t, t, n):
-		return (Functions.p(k_t, t, n) + Functions.p(k_t, t, n + 1)) / 2
+def CalcCoefficients(ts):
+    K0, M0, P0 = LeftConditions(ts)
+    KN, MN, PN = RightConditions(ts)
+    N = int(params.l/params.h)
+    A, B, C, D = [0]*(N-1), [0]*(N-1), [0]*(N-1), [0]*(N-1)
+    for n in range(1, N):
+        lam_n_m_1 = get_lambda(ts[n-1])
+        lam_n = get_lambda(ts[n])
+        lam_n_p_1 = get_lambda(ts[n+1])
+        A[n-1] = (lam_n_m_1+lam_n)/2/params.h
+        C[n-1] = (lam_n+lam_n_p_1)/2/params.h
+        B[n-1] = A[n-1]+C[n-1]+p(ts[n]) * params.h
+        D[n-1] = f(ts[n]) * params.h
+    return A, B, C, D, K0, M0, P0, KN, MN, PN
 
-	@staticmethod
-	def p_left(k_t, t, n):
-		return (Functions.p(k_t, t, n) + Functions.p(k_t, t, n - 1)) / 2
+def f1(T):
+    return params.F0-params.alpha * (T[-1]-params.T0)
 
-	@staticmethod
-	def f_right(k_t, t, n):
-		return (Functions.f(k_t, t, n) + Functions.f(k_t, t, n + 1)) / 2
+def f2 (ts):
+    return  4 * params.np_coef**2 * params.sigma * integrate.trapezoid([get_k(ti) * \
+             (pow(ti, 4) - pow(params.T0, 4)) for ti in ts], np.arange(0, params.l + params.h, params.h))
 
-	@staticmethod
-	def f_left(k_t, t, n):
-		return (Functions.f(k_t, t, n) + Functions.f(k_t, t, n - 1)) / 2
-
-	@staticmethod
-	def A(l_t, t, n):
-		return (l_t(t[n]) + l_t(t[n - 1])) / 2 / params.h
-
-	@staticmethod
-	def B(l_t, k_t, t, n):
-		return Functions.A(l_t, t, n) + Functions.C(l_t, t, n) + 4 * params.n_p * params.n_p * params.sigma * k_t(t[n]) * pow(t[n], 3) * params.h
-
-	@staticmethod
-	def C(l_t, t, n):
-		return (l_t(t[n]) + l_t(t[n + 1])) / 2 / params.h
-
-	@staticmethod
-	def D(k_t, t, n):
-		return 4 * params.n_p * params.n_p + params.sigma * k_t(t[n]) * pow(params.T0, 4) * params.h
-
-
-def GetRightConditions(l_t, k_t, t):
-	K0 = Functions.x_right(l_t, t, 0) + pow(params.h, 2) / 8 * Functions.p_right(k_t, t, 0) + pow(params.h, 2) / 4 * Functions.p(k_t, t, 0)
-	M0 = pow(params.h, 2) / 8 * Functions.p_right(k_t, t, 0) - Functions.x_right(l_t, t, 0)
-	P0 = params.h * params.F0 + pow(params.h, 2) / 4 * (Functions.f_right(k_t, t, 0) + Functions.f_left(k_t, t, 0))
-	return K0, M0, P0
-
-
-def GetLeftConditions(k_t, l_t, t, n):
-	Kn = Functions.x_left(l_t, t, n) / params.h - params.alpha - params.h * Functions.p(k_t, t, n) / 4 - params.h * Functions.p_left(k_t, t, n) / 8
-	Mn = Functions.x_left(l_t, t, n) / params.h - params.h * Functions.p_left(k_t, t, n) / 8
-	Pn = -(params.alpha * params.T0 + (Functions.f_right(k_t, t, n) + Functions.f_left(k_t, t, n)) / 4 * params.h)
-	return Kn, Mn, Pn
-
+def SimpleIterations(alpha, eps1, eps2, maxIter):
+    N = int(params.l/params.h)
+    cnt = 0 
+    T_sp = np.array([params.T0] * (N+1), dtype=float)
+    A, B, C, D, K0, M0, P0, KN, MN, PN = CalcCoefficients(T_sp)
+    T_s = RunMethod(A, B, C, D, K0, M0, P0, KN, MN, PN)
+    while np.max(abs((f1(T_s)-f2(T_s))/f1(T_s))) > eps2 and np.max(abs((T_s-T_sp)/T_s)) > eps1 and cnt < maxIter:
+        T_sp = T_s
+        A, B, C, D, K0, M0, P0, KN, MN, PN = CalcCoefficients(T_sp)
+        new_Ts_norelax = RunMethod(A, B, C, D, K0, M0, P0, KN, MN, PN)
+        T_s = T_sp+params.alpha * (new_Ts_norelax-T_sp)
+        cnt += 1
+    print(f"Кол-во итераций: {cnt}")
+    print(f"Максимальная абсолютная разность решений: {np.max(abs((T_s-T_sp)/T_s))}")
+    print(f"Баланс энергии (|(f2-f1)/f1|): {np.max(abs((f1(T_s)-f2(T_s))/f1(T_s)))}")
+    print(f"f1 = {f1(T_s)}")
+    print(f"f2 = {f2(T_s)}")
+    return T_s
 
 def SaveImg(xs, ys, name_x, name_y, file_name):
-	fig, ax = plt.subplots()
-	ax.plot(xs, ys)
-	ax.grid()
-	ax.set_xlabel(name_x)
-	ax.set_ylabel(name_y)
-	plt.savefig(file_name, bbox_inches="tight")
+    fig, ax = plt.subplots()
+    ax.plot(xs, ys)
+    ax.grid()
+    ax.set_xlabel(name_x)
+    ax.set_ylabel(name_y)
 
-def Main():
-	l_t = Functions.Interpolate(params.fst_table[0], params.fst_table[1])
-	k_t = Functions.Interpolate(params.snd_table[0], params.snd_table[1])
-	t = [0 for _ in range(int(1 / params.h) + 2)]
-	K0, M0, P0 = GetRightConditions(l_t, k_t, t)
-	xi_list = [0]
-	eta_list = [0]
-	x_list = list()
-	x = 0
-	n = 0
-	while x + params.h < 1:
-		x_list.append(x)
-		xi_list.append(Functions.C(l_t, t, n) / (Functions.B(l_t, k_t, t, n) - Functions.A(l_t, t, n) * xi_list[n]))
-		eta_list.append((Functions.D(k_t, t, n) + Functions.A(l_t, t, n) * xi_list[n]) / (Functions.B(l_t, k_t, t, n) - Functions.A(l_t, t, n) * xi_list[n]))
-		n += 1
-		x += params.h
-	x_list.extend([x + params.h, x + params.h * 2])
-	Kn, Mn, Pn = GetLeftConditions(k_t, l_t, t, n)
-	t[n] = (Pn - Mn * xi_list[n]) / (Kn + Mn * xi_list[n])
-	for i in range(n - 1, -1, -1):
-		t[i] = xi_list[i + 1] * t[i + 1] + eta_list[i + 1]
-	SaveImg(x_list, t, "l", "T", "img_1.png")
+    # params.alpha = 0.3
+    # x = np.arange(0, params.l+params.h, params.h)
+    # T = SimpleIterations(0.25, 1e-5, 1e-3, 100)
+    # ax.plot(x, T,  color = 'green')
 
+    plt.savefig(file_name, bbox_inches="tight") # color = 'green'
+
+def main():
+    x = np.arange(0, params.l+params.h, params.h)
+    T = SimpleIterations(0.25, 1e-5, 1e-3, 300)
+    SaveImg(x, T, '', '', 'tmp2.png')
+    # plt.plot(x, T, label='$T_{\\params.alpha}$')
+
+    #params.alpha *= 3
+    #T = SimpleIterations(0.25, 1e-5, 1e-3, 100)
+    #plt.plot(x, T, label='$T_{3 \\params.alpha}$')
+
+    # plt.ylabel('T, K')
+    # plt.xlabel('x, см')
+    # plt.legend()
+    # plt.show()
 
 if __name__ == "__main__":
-	Main()
+    main()

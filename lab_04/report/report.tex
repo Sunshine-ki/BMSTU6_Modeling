@@ -360,11 +360,105 @@ namespace src
 \textbf{1. Представить разностный аналог краевого условия при $x = l$ и его краткий вывод интегро-интерполяционным методом.}\\
 
 
+Проинтегрируем уравнение на отрезке [$X_{n - \frac{1}{2}}; x_{n}$]. 
+Обозначим $F = -k(u) \frac{\partial T}{\partial x}$.
+
+\begin{equation}
+    \begin{aligned}
+  \int^{x_{N}}_{x_{N-\frac{1}{2}}} dx \int^{t_{m + 1}}_{t_{m}} c(t) \frac{\partial T}{\partial t}dt = - \int^{t_{m + 1}}_{t_{m}}dt \int^{x_{N}}_{x_{N-\frac{1}{2}}} \frac{\partial F}{\partial x} dx - \\
+       - \int^{x_{N}}_{x_{N-\frac{1}{2}}} dx \int^{t_{m + 1}}{t_{m}}p(x)Tdt + \int^{x_{N}}_{x_{N-\frac{1}{2}}} dx \int^{t_{m + 1}}{t_{m}} f(x)dt
+    \end{aligned}
+\end{equation}\\
+
+% \begin{equation}
+% 	\int^{x_{N}}_{x_{N-\frac{1}{2}}} \int^{t_{m + 1}}_{t_{m}} c(t) \frac{\partial T}{\partial t}dt = - \int^{t_{m + 1}}_{t_{m}}dt \int^{x_{N}}_{x_{N-\frac{1}{2}}} \frac{\partial F}{\partial x} dx - \int^{x_{N}}_{x_{N-\frac{1}{2}}} dx \int^{t_{m + 1}}{t_{m}}p(x)Tdt + \int^{x_{N}}_{x_{N-\frac{1}{2}}} dx \int^{t_{m + 1}}{t_{m}} f(x)dt
+% \end{equation}\\
+
+Интегрируя аналогично разностному аналогу краевого условия при $x = 0$ (из лекции) получим, с учетом \textbf{(6)}:
+
+\begin{equation*}
+	\frac{h}{4} (\buildrel\,\,\frown\over{c_{N}}(\buildrel\,\,\frown\over{y_{N}} - y_{N}) - \buildrel\,\,\frown\over{c_{N - \frac{1}{2}}} (\frac{\buildrel\,\,\frown\over{y_{N}} + \buildrel\,\,\frown\over{y_{N - 1}}}{2} - \frac{y_{N} + y_{N + 1}}{2})) =
+\end{equation*}
+
+\begin{equation}
+	= \tau (\alpha_{N} (\buildrel\,\,\frown\over{y_{N}} - T_{0}) - \buildrel\,\,\frown\over{X_{N}} \frac{\buildrel\,\,\frown\over{y_{N}} + \buildrel\,\,\frown\over{y_{N - 1}}}{h}) - \tau \frac{h}{4} (p_{N}\buildrel\,\,\frown\over{y_{N}} - p_{n - \frac{1}{2} } - \frac{\buildrel\,\,\frown\over{y_{N}} + \buildrel\,\,\frown\over{y_{N - 1}}}{2} + (\buildrel\,\,\frown\over{f_{N}} - \buildrel\,\,\frown\over{f_{N - \frac{1}{2}}}))
+\end{equation}\\
+
+Приведем уравнение к виду $K_{N} \buildrel\,\,\frown\over{y_{N}} + M_{N} \buildrel\,\,\frown\over {y_{N - 1}} = P_{N}$:
+
+\begin{equation*}
+	(\frac{h}{4} \buildrel\,\,\frown\over{c_{N}} + \frac{h}{8} \buildrel\,\,\frown\over{c_{N - \frac{1}{2}}} + \tau \alpha_{N} + \frac{\tau}{h} \buildrel\,\,\frown\over{X_{N - \frac{1}{2}}} + \frac{h}{4} \tau p_{N} + \frac{h}{8} \tau p_{N - \frac{1}{2}}) \buildrel\,\,\frown\over{y_{n}} + (\frac{h}{8} \buildrel\,\,\frown\over{c_{N - \frac{1}{2}}} - \frac{\tau}{h} \buildrel\,\,\frown\over{X_{N - \frac{1}{2}}} + \frac{h}{8} \tau p_{N - \frac{1}{2}}) \buildrel\,\,\frown\over{y_{N - 1}} =
+\end{equation*}
+
+\begin{equation}
+	= \alpha_{N} \tau T_{0} + \frac{h}{4} \buildrel\,\,\frown\over{C_{N}}y_{N} + \frac{h}{8} \buildrel\,\,\frown\over{c_{N - \frac{1}{2}}} (y_{N} + y_{N - 1}) + \frac{h}{4} \tau (\buildrel\,\,\frown\over{f_{N}} + \buildrel\,\,\frown\over{f_{N - \frac{1}{2}}})
+\end{equation}\\
+
+Будем использовать простую аппроксимацию:
+
+\begin{equation}
+	p_{N - \frac{1}{2}} = \frac{p_{N - 1} + p_{N}}{2}
+\end{equation}\\
+
+Получим $K_{0}, M_{0}, P_{0}, K_{N}, M_{N}, P_{N}$:
+
+\begin{equation}
+	\begin{cases}\buildrel\,\,\frown\over{K_{0}} \buildrel\,\,\frown\over{y_{0}} + \buildrel\,\,\frown\over{M_{0}} \buildrel\,\,\frown\over{y_{1}} = \buildrel\,\,\frown\over{p_{0}}
+		\\ \buildrel\,\,\frown\over{A_{n}}\buildrel\,\,\frown\over{y_{n - 1}} - \buildrel\,\,\frown\over{B_{n}} \buildrel\,\,\frown\over{y_{n}} + \buildrel\,\,\frown\over{D_{n}} \buildrel\,\,\frown\over{y_{n + 1}} = - \buildrel\,\,\frown\over{F_{n}}
+		\\ \buildrel\,\,\frown\over{K_{n}} \buildrel\,\,\frown\over{y_{N}} + \buildrel\,\,\frown\over{M_{N - 1}} \buildrel\,\,\frown\over{y_{N - 1}} = \buildrel\,\,\frown\over{P_{N}}
+	\end{cases}
+\end{equation}\\
+
+Систему \textbf{(11)} решим методом итераций ($s$ - номер итерации): 
+
+\begin{equation}
+	A^{s - 1}_{n} y^s_{n + 1} - B^{s - 1}_{n} y^{s}_{n} + D^{s - 1}_{n} y^{s}_{n - 1} = -F^{s - 1}_{n}
+\end{equation}\\
+
 \textbf{2. График зависимости температуры $T(x, t_{m})$ от координаты $x$ при нескольких фкисированных значених времени $t_{m}$ при заданных выше параметрах. }\\
 
-% \begin{figure}[ht!]
-% 	\centering{
-% 		\includegraphics[width=0.7\textwidth]{img/v3.jpg}}
-% \end{figure}
+\begin{figure}[ht!]
+	\centering{
+		\includegraphics[width=0.7\textwidth]{img/1.png}}
+\end{figure}
+
+\textbf{3. График зависимости $T(x_{n}, t)$ при нескольких фиксированных значениях координаты $x_{n}$}\\
+
+На рисунке верхний график соответствует случаю x = 0, нижний случаю x = $l$.
+
+\begin{figure}[ht!]
+	\centering{
+		\includegraphics[width=0.7\textwidth]{img/2.png}}
+\end{figure}
+
+\newpage 
+
+\section{Ответы на вопросы}
+
+\textbf{1. Приведите  результаты тестирования  программы}\\
+
+При отрицательном тепловом потоке слева идет съем тепла.
+
+\begin{figure}[ht!]
+	\centering{
+		\includegraphics[width=0.7\textwidth]{img/4.png}
+		\caption{График зависимости T($x_n$, t) от координаты x при $F_0$ = -10}}
+\end{figure}
+
+\begin{figure}[ht!]
+	\centering{
+		\includegraphics[width=0.7\textwidth]{img/5.png}
+		\caption{График зависимости T($x_n$, t) при нескольких фиксированных значениях координаты $x_n$ и $F_0$ = -10}}
+\end{figure}
+
+\newpage
+При обнулении потока $F_0 (T)$ на выходе получается график температуры, 
+установившейся в соответствии с температурой окружающей среды.
+
+\begin{figure}[ht!]
+	\centering{
+		\includegraphics[width=0.7\textwidth]{img/6.png}}
+\end{figure}
+
 
 \end{document}
